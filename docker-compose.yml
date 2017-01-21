@@ -1,0 +1,6 @@
+version: '2'
+services:
+  mono:
+    image: "clawio/clawiod"
+    ports:
+     - "1580"
