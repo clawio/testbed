@@ -1,6 +1,70 @@
 version: '2'
+
 services:
-  mono:
-    image: "clawio/clawiod"
+
+  db:
+    image: "mysql:5.7"
+    restart: "always"
+    environment:
+      MYSQL_ROOT_PASSWORD: "passwd" 
+      MYSQL_DATABASE: "owncloud" 
+
+  auth-node:
+    build: "../clawiod"
+    restart: "always"
+    command: "/go/bin/clawiod --conf /etc/clawiod/auth-node.conf"
+    volumes:
+     - "./configs:/etc/clawiod/"
+     - "./logs:/var/log/clawiod/"
+     - "./data:/root/clawiod/"
+
+  oc-data-node:
+    build: "../clawiod"
+    restart: "always"
+    command: "/go/bin/clawiod --conf /etc/clawiod/oc-data-node.conf"
+    volumes:
+     - "./configs:/etc/clawiod/"
+     - "./logs:/var/log/clawiod/"
+     - "./data:/root/clawiod/"
+
+  oc-metadata-node:
+    build: "../clawiod"
+    restart: "always"
+    command: "/go/bin/clawiod --conf /etc/clawiod/oc-metadata-node.conf"
+    volumes:
+     - "./configs:/etc/clawiod/"
+     - "./logs:/var/log/clawiod/"
+     - "./data:/root/clawiod/"
+  
+  oc-webdav-node:
+    build: "../clawiod"
+    restart: "always"
+    command: "/go/bin/clawiod --conf /etc/clawiod/oc-webdav-node.conf"
     ports:
-     - "1580"
+     - "1503:1503"
+    volumes:
+     - "./configs:/etc/clawiod/"
+     - "./logs:/var/log/clawiod/"
+     - "./data:/root/clawiod/"
+
+  proxy-node:
+    build: "../clawiod"
+    restart: "always"
+    command: "/go/bin/clawiod --conf /etc/clawiod/proxy-node.conf"
+    ports:
+     - "1580:1580"
+    volumes:
+     - "./configs:/etc/clawiod/"
+     - "./logs:/var/log/clawiod/"
+     - "./data:/root/clawiod/"
+
+  etcd:
+    image: "quay.io/coreos/etcd"
+    ports:
+      - "2379:2379"
+    command: >-
+      /usr/local/bin/etcd
+      -advertise-client-urls http://etcd:2379,http://etcd:4001
+      -listen-client-urls http://0.0.0.0:2379,http://0.0.0.0:4001
+      -initial-advertise-peer-urls http://etcd:2380
+      -listen-peer-urls http://0.0.0.0:2380
